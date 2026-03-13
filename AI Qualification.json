@@ -1,0 +1,95 @@
+{
+  "name": "AI Qualification",
+  "nodes": [
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-5-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Analyze this real estate lead: {{ $json.name }} said: {{ $json.message }}. \nExtract or infer the following details if present, otherwise set to 'Unknown':\n- Budget\n- Bedrooms/Bathrooms\n- Timeline (e.g., immediate, 3 months)\n- Intent (buy/sell/other)\n\nOutput ONLY a JSON object with: \n{ \n  \"score\": 0-100, \n  \"summary\": \"A brief summary including budget/specs if known\", \n  \"intent\": \"string\", \n  \"name\": \"{{ $json.name }}\", \n  \"email\": \"{{ $json.email }}\",\n  \"extracted_details\": {\n     \"budget\": \"string\",\n     \"specs\": \"string\",\n     \"timeline\": \"string\"\n  }\n}"
+            },
+            {}
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "id": "76c96212-8094-4a0b-9fe1-bf026c4b24bf",
+      "name": "OpenAI: Qualify Lead",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.2,
+      "position": [
+        224,
+        0
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "[OPENAI_API]",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "name"
+            },
+            {
+              "name": "email"
+            },
+            {
+              "name": "phone"
+            },
+            {
+              "name": "message"
+            },
+            {
+              "name": "source"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "909309a6-214f-4e13-94f4-56f94b577aff",
+      "name": "When Executed by Another Workflow"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "OpenAI: Qualify Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3457275f-7209-4d51-8161-6f7517585dfb",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1d7b1b62e647cd33ee102e62626a48258efdb4b2fadb0516d988128a8781f94f"
+  },
+  "id": "uZHRg7uWpEEfljUs",
+  "tags": []
+}

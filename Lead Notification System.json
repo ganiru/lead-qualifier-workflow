@@ -1,0 +1,148 @@
+{
+  "name": "Lead Notification System",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.score }}",
+              "operation": "larger",
+              "value2": 70
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        112
+      ],
+      "name": "High Value?",
+      "id": "b22594b1-568a-411f-8d97-ef4fc87d6819"
+    },
+    {
+      "parameters": {
+        "from": "[FROM_PHONE_NUMBER]",
+        "to": "[TO_PHONE_NUMBER]",
+        "message": "=\n🚀 HOT LEAD: {{ $json.name }}\nScore: {{ $json.score }}/100\nIntent: {{ $json.intent }}\n\nCheck your email and your CRM for details!",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "name": "Twilio SMS",
+      "id": "693ba629-74c1-47bd-80c5-662dbb13749c",
+      "credentials": {
+        "twilioApi": {
+          "id": "[API_ID]",
+          "name": "Twilio account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "[EMAIL_ADDRESS]",
+        "subject": "=New Qualified Lead: {{ $json.name }} (Score: {{ $json.score }})",
+        "message": "=<p>Hi Team,</p>\n\n<p>A new lead has been qualified by the AI Concierge.</p>\n\n<b>Lead Name:</b> {{ $json.name }}<br />\n<b>Qualification Score:</b> {{ $json.score }}<br />\n<b>Summary:</b> {{ $json.summary }}\n\n<p>Best,<br/>\nYour AI Assistant</p>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [
+        0,
+        208
+      ],
+      "name": "Gmail Backup",
+      "id": "de883013-963e-41e6-b741-81ae4ab5123c",
+      "webhookId": "97dc6c01-d05a-4349-9938-9ef1bb5e7e01",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "[AUTH_ID]",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "name"
+            },
+            {
+              "name": "score",
+              "type": "number"
+            },
+            {
+              "name": "summary"
+            },
+            {
+              "name": "intent"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -400,
+        112
+      ],
+      "id": "bdda60c1-c75d-41ca-9c99-c080d79a2b77",
+      "name": "When Executed by Master"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "High Value?": {
+      "main": [
+        [
+          {
+            "node": "Twilio SMS",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Gmail Backup",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gmail Backup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Master": {
+      "main": [
+        [
+          {
+            "node": "High Value?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "00d57b34-f8d3-4da3-bb20-181a2c850c59",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1d7b1b62e647cd33ee102e62626a48258efdb4b2fadb0516d988128a8781f94f"
+  },
+  "id": "PiPtFCGPAtAiTgyL",
+  "tags": []
+}
