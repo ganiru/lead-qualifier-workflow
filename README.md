@@ -4,6 +4,12 @@
 
 ---
 
+## 🎥 See It In Action (90 seconds)
+
+[![Lead Qualifier Demo](https://vimeo.com/1174179749)](https://vimeo.com/1174179749)
+
+*Watch the workflow import, run, and qualify a test lead — no pitch, just code.*
+
 ## 📋 Overview
 
 This Master Orchestrator workflow serves as the central hub for your real estate lead automation system. It receives leads from web forms, validates them, qualifies them using AI, syncs to your CRM, and notifies agents — all with comprehensive error handling.
