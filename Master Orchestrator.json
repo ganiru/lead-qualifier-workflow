@@ -5,9 +5,9 @@
       "parameters": {
         "workflowId": {
           "__rl": true,
-          "value": "uZHRg7uWpEEfljUs",
+          "value": "WORKFLOW_ID_AI_QUALIFICATION",
           "mode": "list",
-          "cachedResultUrl": "/workflow/uZHRg7uWpEEfljUs",
+          "cachedResultUrl": "/workflow/WORKFLOW_ID_AI_QUALIFICATION",
           "cachedResultName": "AI Qualification"
         },
         "workflowInputs": {
@@ -82,7 +82,7 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
       "position": [
-        624,
+        560,
         304
       ],
       "id": "85ab5b84-c27b-4a14-a350-fbcfe7cd08b7",
@@ -93,14 +93,19 @@
       "parameters": {
         "workflowId": {
           "__rl": true,
-          "value": "ADVcjSqJMTbnbbm8",
+          "value": "WORKFLOW_ID_CRM_SYNC",
           "mode": "list",
-          "cachedResultUrl": "/workflow/ADVcjSqJMTbnbbm8",
+          "cachedResultUrl": "/workflow/WORKFLOW_ID_CRM_SYNC",
           "cachedResultName": "CRM Sync"
         },
         "workflowInputs": {
           "mappingMode": "defineBelow",
-          "value": {},
+          "value": {
+            "name": "={{ $json.message.content.name }}",
+            "email": "={{ $json.message.content.email }}",
+            "score": "={{ $json.message.content.score }}",
+            "summary": "={{ $json.message.content.summary }}"
+          },
           "matchingColumns": [],
           "schema": [
             {
@@ -150,7 +155,7 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
       "position": [
-        896,
+        816,
         288
       ],
       "id": "246dfdfa-aece-48ef-a10a-f3b683294975",
@@ -180,9 +185,9 @@
     },
     {
       "parameters": {
-        "content": "### MASTER ORCHESTRATOR\n1. Webhook receives lead.\n2. Code Node cleans data.\n3. IF node checks if lead is valid (contains an email address).\n4. Sub-workflows handle AI scoring, CRM syncing & agent notification.\n",
+        "content": "### MASTER ORCHESTRATOR\n1. Webhook receives lead.\n2. Code Node cleans data.\n3. IF node checks if lead is valid (contains an email address).\n4. Sub-workflows handle AI scoring, CRM syncing & agent notification.\n5. The agent notification is via email, and if it's a hot lead, by SMS and Telegram",
         "height": 220,
-        "width": 300
+        "width": 492
       },
       "id": "66ce1d15-0655-4ee3-bfd1-11c4e0bc3179",
       "name": "Note",
@@ -195,7 +200,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Standardize incoming data\nconst input = $input.first().json\nreturn {\n  name: input.name || \"Unknown\",\n  email: input.email || \"\",\n  phone: input.phone || \"\",\n  message: input.message || \"\",\n  source: input.source || \"\"\n};"
+        "jsCode": "// Standardize incoming data$input.first().json.name\nconst input = $input.first().json.body\nreturn {\n  name: input.name || \"Unknown\",\n  email: input.email || \"\",\n  phone: input.phone || \"\",\n  message: input.message || \"\",\n  source: input.source || \"\"\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -210,18 +215,19 @@
       "parameters": {
         "workflowId": {
           "__rl": true,
-          "value": "PiPtFCGPAtAiTgyL",
+          "value": "WORKFLOW_ID_LEAD_NOTIFICATION",
           "mode": "list",
-          "cachedResultUrl": "/workflow/PiPtFCGPAtAiTgyL",
+          "cachedResultUrl": "/workflow/WORKFLOW_ID_LEAD_NOTIFICATION",
           "cachedResultName": "Lead Notification System"
         },
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
             "score": "={{ $json.Score }}",
-            "name": "={{ $json.Name }}",
+            "name": "={{ $('Step 1: Qualify with AI').item.json.message.content.name }}",
             "summary": "={{ $('Step 1: Qualify with AI').item.json.message.content.summary }}",
-            "intent": "={{ $('Step 1: Qualify with AI').item.json.message.content.intent }}"
+            "intent": "={{ $('Step 1: Qualify with AI').item.json.message.content.intent }}",
+            "email": "={{ $json.Email }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -264,6 +270,16 @@
               "canBeUsedToMatch": true,
               "type": "string",
               "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
             }
           ],
           "attemptToConvertTypes": false,
@@ -274,8 +290,8 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
       "position": [
-        1168,
-        272
+        1072,
+        288
       ],
       "id": "893208a2-0ea2-4703-baec-5db15e788a58",
       "name": "Call 'Lead Notification System'",
@@ -320,18 +336,18 @@
       "type": "n8n-nodes-base.formTrigger",
       "typeVersion": 2.4,
       "position": [
-        -208,
-        320
+        -704,
+        944
       ],
       "id": "8484c121-2fc3-4fdd-92de-d47902398852",
       "name": "VelociLead form",
-      "webhookId": "9c9f04b4-6deb-4fbf-bf46-3af416761788"
+      "webhookId": "WEBHOOK_ID_VELOCILEAD_FORM"
     },
     {
       "parameters": {
-        "sendTo": "obinnae@obiezeilo.com",
+        "sendTo": "YOUR_EMAIL@example.com",
         "subject": "Orchestrator error: Failed to qualify lead",
-        "message": "=Orchestrator error: Failed to qualify lead",
+        "message": "=Orchestrator error: Failed to qualify lead for the user:\n\n<br>Name: {{ $('Cleanup/Sanitize').item.json.name }}\n<br>Email: {{ $('Cleanup/Sanitize').item.json.email }}\n<br>Phone: {{ $('Cleanup/Sanitize').item.json.phone }}\n<br>Message: {{ $('Cleanup/Sanitize').item.json.message }}\n<br>Source: {{ $('Cleanup/Sanitize').item.json.source }}",
         "options": {}
       },
       "type": "n8n-nodes-base.gmail",
@@ -342,19 +358,19 @@
       ],
       "id": "4dabf5dd-a32c-4fcb-a51d-7a795c22f846",
       "name": "Alert - lead qualification failed",
-      "webhookId": "16052d0a-07cd-4866-b746-95ca096b0ec9",
+      "webhookId": "WEBHOOK_ID_GMAIL_ALERT",
       "credentials": {
         "gmailOAuth2": {
-          "id": "dL3NC4EijEXeDhTq",
+          "id": "GMAIL_OAUTH2_CREDENTIAL_ID",
           "name": "Gmail account"
         }
       }
     },
     {
       "parameters": {
-        "sendTo": "[EMAIL_ADDRESS]",
+        "sendTo": "YOUR_EMAIL@example.com",
         "subject": "Failed to email search results to lead",
-        "message": "=<p>The property search results email failed to send.</p><p><b>Name:</b> {{ $('Lead form').item.json.name }}<br><b>Email:</b> {{ $('Lead form').item.json.email }}</p><p>Please send the results manually.</p>",
+        "message": "=<p>The CRM Sync failed for the following.</p>\n<p><br>Name: {{ $('Cleanup/Sanitize').item.json.name }}\n<br>Email: {{ $('Cleanup/Sanitize').item.json.email }}\n<br>Phone: {{ $('Cleanup/Sanitize').item.json.phone }}\n<br>Message: {{ $('Cleanup/Sanitize').item.json.message }}\n<br>Source: {{ $('Cleanup/Sanitize').item.json.source }}</p>",
         "options": {}
       },
       "type": "n8n-nodes-base.gmail",
@@ -365,36 +381,52 @@
       ],
       "id": "d68644a1-b2d1-45ac-af4e-6e995da43be2",
       "name": "Alert - CRM Sync failed",
-      "webhookId": "16052d0a-07cd-4866-b746-95ca096b0ec9",
+      "webhookId": "WEBHOOK_ID_GMAIL_ALERT",
       "credentials": {
         "gmailOAuth2": {
-          "id": "dL3NC4EijEXeDhTq",
+          "id": "GMAIL_OAUTH2_CREDENTIAL_ID",
           "name": "Gmail account"
         }
       }
     },
     {
       "parameters": {
-        "sendTo": "[EMAIL_ADDRESS]",
-        "subject": "Failed to email search results to lead",
-        "message": "=<p>The property search results email failed to send.</p><p><b>Name:</b> {{ $('Lead form').item.json.name }}<br><b>Email:</b> {{ $('Lead form').item.json.email }}</p><p>Please send the results manually.</p>",
+        "sendTo": "YOUR_EMAIL@example.com",
+        "subject": "Failed to notify the agent",
+        "message": "=<p>Orchestrator error: Failed to notify the agent.</p><p><br>Name: {{ $('Cleanup/Sanitize').item.json.name }}\n<br>Email: {{ $('Cleanup/Sanitize').item.json.email }}\n<br>Phone: {{ $('Cleanup/Sanitize').item.json.phone }}\n<br>Message: {{ $('Cleanup/Sanitize').item.json.message }}\n<br>Source: {{ $('Cleanup/Sanitize').item.json.source }}</p>",
         "options": {}
       },
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.2,
       "position": [
-        1248,
+        1152,
         544
       ],
       "id": "009ed529-2308-4617-87cb-8eb59f2a7ee3",
       "name": "Alert - agent notification failed",
-      "webhookId": "16052d0a-07cd-4866-b746-95ca096b0ec9",
+      "webhookId": "WEBHOOK_ID_GMAIL_ALERT",
       "credentials": {
         "gmailOAuth2": {
-          "id": "dL3NC4EijEXeDhTq",
+          "id": "GMAIL_OAUTH2_CREDENTIAL_ID",
           "name": "Gmail account"
         }
       }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "WEBHOOK_PATH_MASTER_ORCHESTRATOR",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -224,
+        160
+      ],
+      "id": "2c4dc5a6-c13b-4167-bac0-988d2f7da9b3",
+      "name": "Webhook",
+      "webhookId": "WEBHOOK_ID_MASTER_ORCHESTRATOR"
     }
   ],
   "pinData": {},
@@ -459,13 +491,7 @@
     },
     "VelociLead form": {
       "main": [
-        [
-          {
-            "node": "Cleanup/Sanitize",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     },
     "Call 'Lead Notification System'": {
@@ -479,16 +505,27 @@
           }
         ]
       ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Cleanup/Sanitize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "ad4889b1-803a-405c-8726-90f45d2e4a0b",
+  "versionId": "VERSION_ID",
   "meta": {
-    "instanceId": "1d7b1b62e647cd33ee102e62626a48258efdb4b2fadb0516d988128a8781f94f"
+    "instanceId": "INSTANCE_ID"
   },
-  "id": "RkvM2iGADEZUWDCq",
+  "id": "WORKFLOW_ID_MASTER_ORCHESTRATOR",
   "tags": []
 }

@@ -24,48 +24,26 @@
     },
     {
       "parameters": {
-        "from": "[FROM_PHONE_NUMBER]",
-        "to": "[TO_PHONE_NUMBER]",
+        "from": "[TWILIO_FROM_NUMBER]",
+        "to": "[TWILIO_TO_NUMBER]",
         "message": "=\n🚀 HOT LEAD: {{ $json.name }}\nScore: {{ $json.score }}/100\nIntent: {{ $json.intent }}\n\nCheck your email and your CRM for details!",
         "options": {}
       },
       "type": "n8n-nodes-base.twilio",
       "typeVersion": 1,
       "position": [
-        0,
+        32,
         0
       ],
       "name": "Twilio SMS",
       "id": "693ba629-74c1-47bd-80c5-662dbb13749c",
       "credentials": {
         "twilioApi": {
-          "id": "[API_ID]",
+          "id": "[TWILIO_CRED_ID]",
           "name": "Twilio account"
         }
-      }
-    },
-    {
-      "parameters": {
-        "sendTo": "[EMAIL_ADDRESS]",
-        "subject": "=New Qualified Lead: {{ $json.name }} (Score: {{ $json.score }})",
-        "message": "=<p>Hi Team,</p>\n\n<p>A new lead has been qualified by the AI Concierge.</p>\n\n<b>Lead Name:</b> {{ $json.name }}<br />\n<b>Qualification Score:</b> {{ $json.score }}<br />\n<b>Summary:</b> {{ $json.summary }}\n\n<p>Best,<br/>\nYour AI Assistant</p>",
-        "options": {}
       },
-      "type": "n8n-nodes-base.gmail",
-      "typeVersion": 2,
-      "position": [
-        0,
-        208
-      ],
-      "name": "Gmail Backup",
-      "id": "de883013-963e-41e6-b741-81ae4ab5123c",
-      "webhookId": "97dc6c01-d05a-4349-9938-9ef1bb5e7e01",
-      "credentials": {
-        "gmailOAuth2": {
-          "id": "[AUTH_ID]",
-          "name": "Gmail account"
-        }
-      }
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -83,6 +61,9 @@
             },
             {
               "name": "intent"
+            },
+            {
+              "name": "email"
             }
           ]
         }
@@ -95,6 +76,154 @@
       ],
       "id": "bdda60c1-c75d-41ca-9c99-c080d79a2b77",
       "name": "When Executed by Master"
+    },
+    {
+      "parameters": {
+        "chatId": "[TELEGRAM_CHAT_ID]",
+        "text": "=🚀 HOT LEAD: {{ $json.name }} ({{ $json.email }})\nScore: {{ $json.score }}/100\nIntent: {{ $json.intent }}\nSummary: {{ $json.summary }}\n\nCheck your your CRM for more details!",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        32,
+        176
+      ],
+      "id": "31cc2d8b-92b0-4548-b923-5496f5774848",
+      "name": "Notify via Telegram",
+      "webhookId": "[TELEGRAM_WEBHOOK_ID]",
+      "credentials": {
+        "telegramApi": {
+          "id": "[TELEGRAM_CRED_ID]",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.mailgun.net/v3/[MAILGUN_DOMAIN]/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "mailgunApi",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "from",
+              "value": "DevObi LLC <info@[MAILGUN_DOMAIN]>"
+            },
+            {
+              "name": "to",
+              "value": "={{ $json.email }}"
+            },
+            {
+              "name": "subject",
+              "value": "=New Qualified Lead: {{ $json.name }} (Score: {{ $json.score }})"
+            },
+            {
+              "name": "h:Reply-To",
+              "value": "info@[REPLY_TO_DOMAIN]"
+            },
+            {
+              "name": "text",
+              "value": "=Hi team,\n\nA new lead has been qualified by the AI Concierge.\nLead Name: {{ $json.name }}\nQualification Score: {{ $json.score }}\nSummary:{{ $json.summary }}\n\nBest,\nYour AI Assistant\n"
+            },
+            {
+              "name": "html",
+              "value": "=<p>Hi Team,</p>\n\n<p>A new lead has been qualified by the AI Concierge.</p>\n\n<b>Lead Name:</b> {{ $json.name }}<br />\n<b>Qualification Score:</b> {{ $json.score }}<br />\n<b>Summary:</b> {{ $json.summary }}\n\n<p>Best,<br/>\nYour AI Assistant</p>"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "27321d3e-1f58-4a50-b79c-ea03d89dec64",
+      "name": "Email the agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        48,
+        352
+      ],
+      "credentials": {
+        "mailgunApi": {
+          "id": "[MAILGUN_CRED_ID]",
+          "name": "Mailgun account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "sendTo": "[ALERT_EMAIL]",
+        "subject": "Failed to notify the agent via Telegram",
+        "message": "=<p>Orchestrator error: Failed to notify the agent.</p><p><br>Name: {{ $json.name }}\n<br>Email: {{ $json.email }}\n<br>Error details: {{ $json.error.message }}</p>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        272,
+        224
+      ],
+      "id": "245f6721-75b0-429a-91fb-9f720647a6a3",
+      "name": "Telegram failed",
+      "webhookId": "[GMAIL_WEBHOOK_ID]",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "[GMAIL_CRED_ID]",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "[ALERT_EMAIL]",
+        "subject": "Failed to notify the agent via email",
+        "message": "=<p>Orchestrator error: Failed to notify the agent.</p><p><br>Name: {{ $json.name }}\n<br>Email: {{ $json.email }}\n<br>Error details: {{ $json.error.message }}</p>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        288,
+        384
+      ],
+      "id": "1c5e9996-cfa9-4048-8512-33de6ef39c37",
+      "name": "Email failed",
+      "webhookId": "[GMAIL_WEBHOOK_ID]",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "[GMAIL_CRED_ID]",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "[ALERT_EMAIL]",
+        "subject": "Failed to notify the agent via SMS",
+        "message": "=<p>Orchestrator error: SMS Failed.\n</p><p><br>Name: {{ $json.name }}\n<br>Email: {{ $json.email }}\n<br>Error details: {{ $json.error.message }}</p>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        288,
+        32
+      ],
+      "id": "12d75c78-9e49-4590-ad31-54ccc1eb28c6",
+      "name": "SMS failed",
+      "webhookId": "[GMAIL_WEBHOOK_ID]",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "[GMAIL_CRED_ID]",
+          "name": "Gmail account"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -108,14 +237,19 @@
             "index": 0
           },
           {
-            "node": "Gmail Backup",
+            "node": "Notify via Telegram",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Email the agent",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Gmail Backup",
+            "node": "Email the agent",
             "type": "main",
             "index": 0
           }
@@ -132,16 +266,52 @@
           }
         ]
       ]
+    },
+    "Email the agent": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Email failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify via Telegram": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Telegram failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Twilio SMS": {
+      "main": [
+        [],
+        [
+          {
+            "node": "SMS failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "00d57b34-f8d3-4da3-bb20-181a2c850c59",
+  "versionId": "9ef883d4-e47e-4173-bda4-176e9868cfc3",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "1d7b1b62e647cd33ee102e62626a48258efdb4b2fadb0516d988128a8781f94f"
+    "instanceId": "[INSTANCE_ID]"
   },
   "id": "PiPtFCGPAtAiTgyL",
   "tags": []
