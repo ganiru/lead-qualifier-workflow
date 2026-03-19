@@ -512,4 +512,12 @@ This workflow is proprietary software owned by DevObi LLC.
 **Built with ❤️ by DevObi LLC**  
 *Automating the future of real estate*
 
-**Last Updated**: March 14, 2026
+## 🚀 Ready to Deploy Without the Setup?
+
+If you'd rather have this workflow installed, configured, and monitored for you:
+
+→ [Founding Member: $497/mo, setup waived](https://devobi.com/founding)
+
+Includes: AI lead scoring, CRM sync, SMS automation, and weekly performance reports.
+
+**Last Updated**: March 18, 2026
